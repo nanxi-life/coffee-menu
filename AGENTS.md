@@ -1,22 +1,91 @@
+## Project
+
+这是一个基于 Astro 的静态咖啡菜谱网站。
+
+- 在线地址：https://nanxi-life.github.io/coffee-menu/
+- 仓库：https://github.com/nanxi-life/coffee-menu
+- 内容目录：`content/recipes/`
+- 主题：`cozy`（可在 `src/config.ts` 切换为 `magazine`）
+
 ## Development
 
-When starting the dev server, use background mode:
+启动本地开发服务器（后台模式）：
+
+```bash
+npx astro dev --host --background
+```
+
+带 GitHub Pages 子路径访问：
 
 ```
-astro dev --background
+http://localhost:4321/coffee-menu/
 ```
 
-Manage the background server with `astro dev stop`, `astro dev status`, and `astro dev logs`.
+管理后台服务器：
+
+```bash
+npx astro dev stop
+npx astro dev status
+npx astro dev logs
+```
+
+## Content
+
+菜谱内容放在 `content/recipes/`，按分类组织：
+
+```text
+content/recipes/
+├── 特调/
+│   └── 橙子海/
+│       ├── index.md
+│       └── cover.jpg
+├── 意式/
+└── 手冲/
+```
+
+每个菜谱文件夹需要：
+
+- `index.md`：菜谱 frontmatter + 正文
+- `cover.jpg`：封面图
+
+参考模板：`content/recipes/TEMPLATE.md`
+
+## Images
+
+`public/images/` 是 `content/recipes/` 中图片的构建副本，由 `scripts/sync-images.mjs` 自动生成。**不要手动修改 `public/images/`**。
+
+开发或构建前会运行：
+
+```bash
+npm run sync
+```
+
+## Theme Switching
+
+修改 `src/config.ts`：
+
+```ts
+theme: 'cozy' // 或 'magazine'
+```
+
+切换主题后需要重启 dev 服务器。
+
+## Build & Deploy
+
+本地构建：
+
+```bash
+npm run build
+```
+
+部署到 GitHub Pages：
+
+1. push 到 `main` 分支
+2. GitHub Actions 自动构建并部署
+3. 访问 https://nanxi-life.github.io/coffee-menu/
 
 ## Documentation
 
-Full documentation: https://docs.astro.build
-
-Consult these guides before working on related tasks:
-
-- [Adding pages, dynamic routes, or middleware](https://docs.astro.build/en/guides/routing/)
-- [Working with Astro components](https://docs.astro.build/en/basics/astro-components/)
-- [Using React, Vue, Svelte, or other framework components](https://docs.astro.build/en/guides/framework-components/)
-- [Adding or managing content](https://docs.astro.build/en/guides/content-collections/)
-- [Adding styles or using Tailwind](https://docs.astro.build/en/guides/styling/)
-- [Supporting multiple languages](https://docs.astro.build/en/guides/internationalization/)
+- Astro: https://docs.astro.build
+- Routing: https://docs.astro.build/en/guides/routing/
+- Content Collections: https://docs.astro.build/en/guides/content-collections/
