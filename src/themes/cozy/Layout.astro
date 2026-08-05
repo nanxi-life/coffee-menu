@@ -1,0 +1,38 @@
+---
+import './theme.css';
+import { withBase } from '../../utils/paths';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={description ?? ''} />
+    <title>{title}</title>
+  </head>
+  <body class="cozy">
+    <nav class="nav">
+      <div class="container nav-inner">
+        <a href={withBase('/')} class="logo">☕ 咖啡菜谱</a>
+      </div>
+    </nav>
+    <main>
+      <slot />
+    </main>
+    <footer class="footer">
+      <div class="container">
+        <p>记录日常咖啡</p>
+      </div>
+    </footer>
+  </body>
+</html>

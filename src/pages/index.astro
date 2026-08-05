@@ -1,0 +1,25 @@
+---
+import { getCollection } from 'astro:content';
+import { SITE_CONFIG } from '../config';
+import { getAllCategories } from '../utils/recipes';
+
+import CozyLayout from '../themes/cozy/Layout.astro';
+import CozyHomePage from '../themes/cozy/HomePage.astro';
+import MagazineLayout from '../themes/magazine/Layout.astro';
+import MagazineHomePage from '../themes/magazine/HomePage.astro';
+
+const Layout = SITE_CONFIG.theme === 'cozy' ? CozyLayout : MagazineLayout;
+const HomePage = SITE_CONFIG.theme === 'cozy' ? CozyHomePage : MagazineHomePage;
+
+const recipes = await getCollection('recipes');
+const categories = getAllCategories(recipes);
+---
+
+<Layout title={SITE_CONFIG.title} description={SITE_CONFIG.description}>
+  <HomePage
+    title={SITE_CONFIG.title}
+    description={SITE_CONFIG.description}
+    recipes={recipes}
+    categories={categories}
+  />
+</Layout>

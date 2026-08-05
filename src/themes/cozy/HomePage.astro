@@ -1,0 +1,98 @@
+---
+import RecipeCard from './RecipeCard.astro';
+import type { Recipe } from '../../utils/recipes';
+
+interface Props {
+  title: string;
+  description: string;
+  recipes: Recipe[];
+  categories: string[];
+}
+
+const { title, description, recipes, categories } = Astro.props;
+---
+
+<div class="container">
+  <header class="header">
+    <h1>{title}</h1>
+    <p>{description}</p>
+  </header>
+
+  <div class="controls">
+    <input
+      type="text"
+      class="search-input"
+      placeholder="搜索咖啡、原料、做法..."
+      id="recipe-search"
+    />
+    <div class="category-filter" id="category-filter">
+      <button class="category-btn active" data-category="all">全部</button>
+      {categories.map((cat) => (
+        <button class="category-btn" data-category={cat}>{cat}</button>
+      ))}
+    </div>
+  </div>
+
+  <div class="recipe-grid" id="recipe-grid">
+    {recipes.map((recipe) => (
+      <RecipeCard recipe={recipe} />
+    ))}
+  </div>
+
+  <div class="empty-state" id="empty-state" style="display: none;">
+    没有找到 matching 的菜谱，换个关键词试试？
+  </div>
+</div>
+
+<script>
+  const searchInput = document.getElementById('recipe-search') as HTMLInputElement;
+  const categoryButtons = document.querySelectorAll('.category-btn');
+  const recipeCards = document.querySelectorAll('.recipe-card');
+  const emptyState = document.getElementById('empty-state');
+  const grid = document.getElementById('recipe-grid');
+
+  let activeCategory = 'all';
+  let activeQuery = '';
+
+  function filter() {
+    let visibleCount = 0;
+    recipeCards.forEach((card) => {
+      const el = card as HTMLElement;
+      const category = el.dataset.category || '';
+      const searchData = (el.dataset.search || '').toLowerCase();
+      const matchesCategory = activeCategory === 'all' || category === activeCategory;
+      const matchesSearch = searchData.includes(activeQuery.toLowerCase());
+
+      if (matchesCategory && matchesSearch) {
+        el.style.display = '';
+        visibleCount++;
+      } else {
+        el.style.display = 'none';
+      }
+    });
+
+    if (emptyState && grid) {
+      if (visibleCount === 0) {
+        emptyState.style.display = 'block';
+        grid.style.display = 'none';
+      } else {
+        emptyState.style.display = 'none';
+        grid.style.display = '';
+      }
+    }
+  }
+
+  searchInput?.addEventListener('input', (e) => {
+    activeQuery = (e.target as HTMLInputElement).value;
+    filter();
+  });
+
+  categoryButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      categoryButtons.forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeCategory = (btn as HTMLElement).dataset.category || 'all';
+      filter();
+    });
+  });
+</script>

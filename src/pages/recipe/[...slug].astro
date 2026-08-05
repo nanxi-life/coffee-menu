@@ -1,0 +1,27 @@
+---
+import { getCollection, render } from 'astro:content';
+import { SITE_CONFIG } from '../../config';
+
+import CozyLayout from '../../themes/cozy/Layout.astro';
+import CozyRecipeDetail from '../../themes/cozy/RecipeDetail.astro';
+import MagazineLayout from '../../themes/magazine/Layout.astro';
+import MagazineRecipeDetail from '../../themes/magazine/RecipeDetail.astro';
+
+const Layout = SITE_CONFIG.theme === 'cozy' ? CozyLayout : MagazineLayout;
+const RecipeDetail = SITE_CONFIG.theme === 'cozy' ? CozyRecipeDetail : MagazineRecipeDetail;
+
+export async function getStaticPaths() {
+  const recipes = await getCollection('recipes');
+  return recipes.map((recipe) => ({
+    params: { slug: recipe.id.replace(/\/index\.md$/, '') },
+    props: { recipe },
+  }));
+}
+
+const { recipe } = Astro.props;
+const { Content } = await render(recipe);
+---
+
+<Layout title={`${recipe.data.title} | ${SITE_CONFIG.title}`}>
+  <RecipeDetail recipe={recipe} Content={Content} />
+</Layout>
