@@ -15,7 +15,7 @@ const recipes = await getCollection('recipes');
 const categories = getAllCategories(recipes);
 ---
 
-<Layout title={SITE_CONFIG.title} description={SITE_CONFIG.description}>
+<Layout title={SITE_CONFIG.title} description={SITE_CONFIG.description} categories={categories}>
   <HomePage
     title={SITE_CONFIG.title}
     description={SITE_CONFIG.description}

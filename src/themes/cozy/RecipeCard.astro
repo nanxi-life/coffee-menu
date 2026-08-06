@@ -11,10 +11,20 @@ const detailUrl = withBase(`/recipe/${recipe.id.replace(/\/index\.md$/, '')}`);
 const ingredientSummary = (recipe.data.ingredients ?? []).map((i) => i.item).join(' ｜ ');
 ---
 
-<a href={detailUrl} class="recipe-card" data-category={recipe.data.category} data-search={`${recipe.data.title} ${recipe.data.category} ${recipe.body}`}>
-  <img src={withBase(recipe.data.image)} alt={recipe.data.title} class="recipe-card-image" />
+<a
+  href={detailUrl}
+  class="recipe-card"
+  data-category={recipe.data.category}
+  data-search={`${recipe.data.title} ${recipe.data.category} ${recipe.body} ${ingredientSummary}`}
+>
+  <div class="recipe-card-image-wrap">
+    <img src={withBase(recipe.data.image)} alt={recipe.data.title} class="recipe-card-image" loading="lazy" />
+  </div>
   <div class="recipe-card-body">
-    <span class="recipe-card-category">{recipe.data.category}</span>
+    <div class="recipe-card-top">
+      <span class="recipe-card-category">{recipe.data.category}</span>
+      <span class="recipe-card-arrow" aria-hidden="true">↗</span>
+    </div>
     <h3 class="recipe-card-title">{recipe.data.title}</h3>
     {ingredientSummary && <p class="recipe-card-meta">{ingredientSummary}</p>}
   </div>

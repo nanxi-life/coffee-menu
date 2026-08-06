@@ -12,26 +12,18 @@ interface Props {
 const { title, description, recipes, categories } = Astro.props;
 ---
 
-<div class="container">
+<div class="container home-page">
   <header class="header">
-    <h1>{title}</h1>
-    <p>{description}</p>
-  </header>
-
-  <div class="controls">
-    <input
-      type="text"
-      class="search-input"
-      placeholder="搜索咖啡、原料、做法..."
-      id="recipe-search"
-    />
-    <div class="category-filter" id="category-filter">
-      <button class="category-btn active" data-category="all">全部</button>
-      {categories.map((cat) => (
-        <button class="category-btn" data-category={cat}>{cat}</button>
-      ))}
+    <div class="hero-copy">
+      <span class="eyebrow">A Small Coffee Archive</span>
+      <h1>{title}</h1>
+      <p>{description}</p>
     </div>
-  </div>
+    <div class="hero-stat" aria-label={`${recipes.length} 道菜谱`}>
+      <strong>{recipes.length}</strong>
+      <span>RECIPES<br />COLLECTED</span>
+    </div>
+  </header>
 
   <div class="recipe-grid" id="recipe-grid">
     {recipes.map((recipe) => (
@@ -40,7 +32,7 @@ const { title, description, recipes, categories } = Astro.props;
   </div>
 
   <div class="empty-state" id="empty-state" style="display: none;">
-    没有找到 matching 的菜谱，换个关键词试试？
+    没有找到匹配的菜谱，换个关键词试试？
   </div>
 </div>
 
@@ -82,16 +74,20 @@ const { title, description, recipes, categories } = Astro.props;
     }
   }
 
-  searchInput?.addEventListener('input', (e) => {
-    activeQuery = (e.target as HTMLInputElement).value;
+  searchInput?.addEventListener('input', (event) => {
+    activeQuery = (event.target as HTMLInputElement).value;
     filter();
   });
 
-  categoryButtons.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      categoryButtons.forEach((b) => b.classList.remove('active'));
-      btn.classList.add('active');
-      activeCategory = (btn as HTMLElement).dataset.category || 'all';
+  categoryButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      categoryButtons.forEach((item) => {
+        item.classList.remove('active');
+        item.setAttribute('aria-pressed', 'false');
+      });
+      button.classList.add('active');
+      button.setAttribute('aria-pressed', 'true');
+      activeCategory = (button as HTMLElement).dataset.category || 'all';
       filter();
     });
   });

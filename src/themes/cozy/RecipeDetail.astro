@@ -14,43 +14,62 @@ const { recipe, Content } = Astro.props;
 <div class="container recipe-detail">
   <a href={withBase('/')} class="back-link">← 返回首页</a>
 
-  <div class="recipe-detail-header">
-    <h1 class="recipe-detail-title">{recipe.data.title}</h1>
-    <div class="recipe-detail-meta">
-      <span>{recipe.data.category}</span>
-      {recipe.data.prepTime && <span>⏱ {recipe.data.prepTime}</span>}
+  <div class="recipe-detail-layout">
+    <div class="recipe-detail-visual">
+      <img src={withBase(recipe.data.image)} alt={recipe.data.title} class="recipe-detail-image" />
+    </div>
+
+    <div class="recipe-detail-content">
+      <div class="recipe-detail-header">
+        <span class="eyebrow">{recipe.data.category}</span>
+        <h1 class="recipe-detail-title">{recipe.data.title}</h1>
+        <div class="recipe-detail-meta">
+          {recipe.data.prepTime && <span>制作时间 {recipe.data.prepTime}</span>}
+        </div>
+      </div>
+
+      {recipe.data.ingredients && recipe.data.ingredients.length > 0 && (
+        <section class="recipe-detail-section">
+          <div class="section-heading">
+            <span class="section-index">01</span>
+            <h2>配比</h2>
+          </div>
+          <ul class="ingredients-list">
+            {recipe.data.ingredients.map((ing) => (
+              <li>
+                <span>{ing.item}</span>
+                <span>{ing.amount}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   </div>
 
-  <img src={withBase(recipe.data.image)} alt={recipe.data.title} class="recipe-detail-image" />
+  <div class="recipe-detail-lower">
+    <section class="recipe-detail-section">
+      <div class="section-heading">
+        <span class="section-index">02</span>
+        <h2>介绍</h2>
+      </div>
+      <div class="recipe-prose">
+        <Content />
+      </div>
+    </section>
 
-  <div class="recipe-detail-section">
-    <h2>介绍</h2>
-    <Content />
+    {recipe.data.steps && recipe.data.steps.length > 0 && (
+      <section class="recipe-detail-section">
+        <div class="section-heading">
+          <span class="section-index">03</span>
+          <h2>制作步骤</h2>
+        </div>
+        <ol class="steps-list">
+          {recipe.data.steps.map((step) => (
+            <li>{step}</li>
+          ))}
+        </ol>
+      </section>
+    )}
   </div>
-
-  {recipe.data.ingredients && recipe.data.ingredients.length > 0 && (
-    <div class="recipe-detail-section">
-      <h2>配比</h2>
-      <ul class="ingredients-list">
-        {recipe.data.ingredients.map((ing) => (
-          <li>
-            <span>{ing.item}</span>
-            <span>{ing.amount}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  )}
-
-  {recipe.data.steps && recipe.data.steps.length > 0 && (
-    <div class="recipe-detail-section">
-      <h2>制作步骤</h2>
-      <ol class="steps-list">
-        {recipe.data.steps.map((step) => (
-          <li>{step}</li>
-        ))}
-      </ol>
-    </div>
-  )}
 </div>
