@@ -1,7 +1,7 @@
 ---
 title: 冰拿铁
-category: 意式
-image: /images/意式/冰拿铁/cover.jpg
+category: 经典意式
+image: /images/经典意式/冰拿铁/cover.jpg
 prepTime: 8 分钟
 ingredients:
   - item: 浓缩咖啡
