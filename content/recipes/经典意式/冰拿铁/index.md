@@ -7,7 +7,7 @@ ingredients:
   - item: 浓缩咖啡
     amount: 36g
   - item: 牛奶
-    amount: 120g
+    amount: 200g
   - item: 冰块
     amount: 80g
 steps:
