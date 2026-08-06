@@ -8,6 +8,7 @@ interface Props {
 
 const { recipe } = Astro.props;
 const detailUrl = withBase(`/recipe/${recipe.id.replace(/\/index\.md$/, '')}`);
+const ingredientSummary = (recipe.data.ingredients ?? []).map((i) => i.item).join(' ｜ ');
 ---
 
 <a href={detailUrl} class="recipe-card" data-category={recipe.data.category} data-search={`${recipe.data.title} ${recipe.data.category} ${recipe.body}`}>
@@ -17,6 +18,6 @@ const detailUrl = withBase(`/recipe/${recipe.id.replace(/\/index\.md$/, '')}`);
   <div class="recipe-card-body">
     <span class="recipe-card-category">{recipe.data.category}</span>
     <h3 class="recipe-card-title">{recipe.data.title}</h3>
-    {recipe.data.prepTime && <p class="recipe-card-meta">{recipe.data.prepTime}</p>}
+    {ingredientSummary && <p class="recipe-card-meta">{ingredientSummary}</p>}
   </div>
 </a>

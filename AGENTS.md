@@ -7,6 +7,10 @@
 - 内容目录：`content/recipes/`
 - 主题：`cozy`（可在 `src/config.ts` 切换为 `magazine`）
 
+## Rules
+
+- **未经用户允许，不要擅自 commit 或 push**。所有提交必须先征得用户同意。
+
 ## Development
 
 启动本地开发服务器（后台模式）：
