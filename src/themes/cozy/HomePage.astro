@@ -19,8 +19,8 @@ const { title, description, recipes, categories } = Astro.props;
       <h1>{title}</h1>
       <p>{description}</p>
     </div>
-    <div class="hero-stat" aria-label={`${recipes.length} 道菜谱`}>
-      <strong>{recipes.length}</strong>
+    <div class="hero-stat" id="hero-stat" aria-label={`${recipes.length} recipes collected`} aria-live="polite">
+      <strong id="recipe-count">{recipes.length}</strong>
       <span>RECIPES<br />COLLECTED</span>
     </div>
   </header>
@@ -42,6 +42,8 @@ const { title, description, recipes, categories } = Astro.props;
   const recipeCards = document.querySelectorAll('.recipe-card');
   const emptyState = document.getElementById('empty-state');
   const grid = document.getElementById('recipe-grid');
+  const recipeCount = document.getElementById('recipe-count');
+  const heroStat = document.getElementById('hero-stat');
 
   let activeCategory = 'all';
   let activeQuery = '';
@@ -71,6 +73,11 @@ const { title, description, recipes, categories } = Astro.props;
         emptyState.style.display = 'none';
         grid.style.display = '';
       }
+    }
+
+    if (recipeCount && heroStat) {
+      recipeCount.textContent = String(visibleCount);
+      heroStat.setAttribute('aria-label', `${visibleCount} recipes collected`);
     }
   }
 
