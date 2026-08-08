@@ -1,7 +1,7 @@
 ---
-title: 荔枝冷萃
+title: 芭乐冷萃
 category: 特调
-image: /images/特调/荔枝冷萃/cover.jpg
+image: /images/特调/芭乐冷萃/cover.jpg
 prepTime: 8 分钟
 ingredients:
   - item: 冷萃咖啡
