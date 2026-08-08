@@ -13,7 +13,7 @@ ingredients:
   - item: 淡奶油
     amount: 100g
   - item: 炼乳
-    amount: 15g
+    amount: 10g
   
 steps:
   - 淡奶油加入炼乳打发
