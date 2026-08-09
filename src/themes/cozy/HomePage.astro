@@ -2,6 +2,7 @@
 import RecipeCard from './RecipeCard.astro';
 import type { Recipe } from '../../utils/recipes';
 import { withBase } from '../../utils/paths';
+import { HERO_IMAGES } from '../../generated/hero-images';
 
 interface Props {
   title: string;
@@ -11,22 +12,40 @@ interface Props {
 }
 
 const { title, description, recipes, categories } = Astro.props;
+
+function shuffle<T>(items: T[]) {
+  const shuffled = [...items];
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
+  }
+  return shuffled;
+}
+
+const heroCandidates = HERO_IMAGES.map((asset) => ({
+  asset,
+  recipe: recipes.find((recipe) => recipe.data.image === asset.source),
+})).filter((candidate): candidate is typeof candidate & { recipe: Recipe } => Boolean(candidate.recipe));
+const portraitPool = shuffle(heroCandidates.filter(({ asset }) => asset.orientation === 'portrait'));
+const landscapePool = shuffle(heroCandidates.filter(({ asset }) => asset.orientation === 'landscape'));
+const heroSlots = ['portrait', 'landscape', 'landscape', 'portrait', 'landscape', 'portrait', 'portrait', 'landscape', 'portrait', 'landscape'] as const;
+const heroSelection = heroSlots.map((orientation, index) => {
+  const pool = orientation === 'portrait' ? portraitPool : landscapePool;
+  return pool[index % pool.length] ?? heroCandidates[index % heroCandidates.length];
+});
 ---
 
 <div class="home-page">
   <section class="hero-stage" aria-labelledby="journal-title">
     <div class="hero-canvas">
       <div class="hero-collage" aria-label="Coffee photography collage">
-        {recipes.slice(0, 11).map((recipe, index) => (
+        {heroSelection.map(({ asset, recipe }, index) => (
           <a
             href={withBase(`/recipe/${recipe.id.replace(/\/index\.md$/, '')}`)}
-            class={`collage-frame collage-frame-${index + 1}`}
-            data-move-x={index % 2 === 0 ? 1 : -1}
-            data-move-y={index % 3 === 0 ? -1 : 1}
-            data-rotate={index % 2 === 0 ? 1 : -1}
+            class={`collage-frame collage-frame-${index + 1} ${asset.orientation}`}
             aria-label={`View ${recipe.data.title}`}
           >
-            <img src={withBase(recipe.data.image)} alt={recipe.data.title} loading={index < 3 ? 'eager' : 'lazy'} />
+            <img src={withBase(asset.thumb)} alt={recipe.data.title} loading={index < 3 ? 'eager' : 'lazy'} />
           </a>
         ))}
         <div class="hero-center">
@@ -37,7 +56,7 @@ const { title, description, recipes, categories } = Astro.props;
         <span class="collage-note">Scroll to<br />open the journal ↓</span>
       </div>
       <div class="hero-footer container">
-        <span>01 — 11 / First edition</span>
+        <span>01 — 10 / First edition</span>
         <a href="#archive" class="scroll-cue">Explore the archive <span>↓</span></a>
         <span>{recipes.length} works collected</span>
       </div>
