@@ -174,8 +174,8 @@
 	.cozy .collage-frame-1, .cozy .collage-frame-4, .cozy .collage-frame-5, .cozy .collage-frame-8 { display: block !important; }
 	.cozy .collage-frame-1 { top: 11%; left: 4%; width: 29%; height: 18%; }
 	.cozy .collage-frame-4 { top: 11%; right: 4%; width: 29%; height: 20%; }
-	.cozy .collage-frame-5 { bottom: 14%; left: 4%; width: 29%; height: 21%; }
-	.cozy .collage-frame-8 { right: 4%; bottom: 14%; width: 29%; height: 20%; }
+	.cozy .collage-frame-5 { top: 72%; bottom: auto; left: 4%; width: 29%; height: 21%; }
+	.cozy .collage-frame-8 { top: 72%; right: 4%; bottom: auto; width: 29%; height: 20%; }
 	.cozy .collage-note { right: 5%; bottom: 7%; font-size: 0.72rem; }
 	.cozy .hero-footer { grid-template-columns: 1fr 1fr; gap: 14px; line-height: 1.5; }
 	.cozy .scroll-cue { grid-row: 2; justify-self: start; }
