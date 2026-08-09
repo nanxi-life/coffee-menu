@@ -26,6 +26,13 @@ const heroCandidates = HERO_IMAGES.map((asset) => ({
   asset,
   recipe: recipes.find((recipe) => recipe.data.image === asset.source),
 })).filter((candidate): candidate is typeof candidate & { recipe: Recipe } => Boolean(candidate.recipe));
+const heroAssets = heroCandidates.map(({ asset, recipe }) => ({
+  id: recipe.id,
+  title: recipe.data.title,
+  href: withBase(`/recipe/${recipe.id.replace(/\/index\.md$/, '')}`),
+  thumb: withBase(asset.thumb),
+  orientation: asset.orientation,
+}));
 const portraitPool = shuffle(heroCandidates.filter(({ asset }) => asset.orientation === 'portrait'));
 const landscapePool = shuffle(heroCandidates.filter(({ asset }) => asset.orientation === 'landscape'));
 const heroSlots = ['portrait', 'landscape', 'landscape', 'portrait', 'landscape', 'portrait', 'portrait', 'landscape', 'portrait', 'landscape'] as const;
@@ -72,6 +79,39 @@ const heroSelection = heroSlots.map((orientation, index) => {
       </div>
     </div>
   </nav>
+
+  <script is:inline define:vars={{ heroAssets }}>
+    const heroSlots = ['portrait', 'landscape', 'landscape', 'portrait', 'landscape', 'portrait', 'portrait', 'landscape', 'portrait', 'landscape'];
+    const shuffled = (items) => {
+      const result = [...items];
+      for (let index = result.length - 1; index > 0; index -= 1) {
+        const swapIndex = Math.floor(Math.random() * (index + 1));
+        [result[index], result[swapIndex]] = [result[swapIndex], result[index]];
+      }
+      return result;
+    };
+
+    const pools = {
+      portrait: shuffled(heroAssets.filter((asset) => asset.orientation === 'portrait')),
+      landscape: shuffled(heroAssets.filter((asset) => asset.orientation === 'landscape')),
+    };
+
+    document.querySelectorAll('.collage-frame').forEach((frame, index) => {
+      const orientation = heroSlots[index];
+      const pool = pools[orientation];
+      const asset = pool[index % pool.length] || heroAssets[index % heroAssets.length];
+      if (!asset) return;
+
+      const link = frame;
+      const image = frame.querySelector('img');
+      link.href = asset.href;
+      link.setAttribute('aria-label', `View ${asset.title}`);
+      if (image) {
+        image.src = asset.thumb;
+        image.alt = asset.title;
+      }
+    });
+  </script>
 
   <section class="archive container" id="archive" aria-labelledby="archive-title">
     <div class="archive-heading">
