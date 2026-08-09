@@ -17,7 +17,7 @@
 │   │   └── ...
 │   └── 意式/
 │       └── ...
-├── public/images/            # 构建时自动同步的图片（无需手动编辑）
+├── public/images/            # 构建时临时生成的图片（不提交）
 ├── src/
 │   ├── content.config.ts     # 内容集合配置
 │   ├── config.ts             # 主题配置
