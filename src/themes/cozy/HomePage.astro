@@ -80,6 +80,9 @@ const { title, description, recipes, categories } = Astro.props;
   const heroCenter = document.querySelector('.hero-center') as HTMLElement | null;
   const collageFrames = document.querySelectorAll('.collage-frame');
   let frameOrigins: Array<{ x: number; y: number }> = [];
+  let targetProgress = 0;
+  let renderedProgress = 0;
+  let animationFrame = 0;
 
   function measureHeroFrames() {
     if (!heroCenter) return;
@@ -103,13 +106,15 @@ const { title, description, recipes, categories } = Astro.props;
     });
   }
 
-  function updateHeroCollage() {
-    if (!heroStage || !heroCanvas) return;
+  function getHeroProgress() {
+    if (!heroStage) return 0;
     const travel = heroStage.getBoundingClientRect().top;
     const distance = heroStage.clientHeight - window.innerHeight;
-    const progress = Math.max(0, Math.min(1, -travel / distance));
-    if (frameOrigins.length !== collageFrames.length) measureHeroFrames();
+    return Math.max(0, Math.min(1, -travel / Math.max(1, distance)));
+  }
 
+  function renderHeroCollage(progress: number) {
+    if (!heroCanvas) return;
     heroCanvas.style.setProperty('--hero-progress', String(progress));
     collageFrames.forEach((frame, index) => {
       const element = frame as HTMLElement;
@@ -120,17 +125,41 @@ const { title, description, recipes, categories } = Astro.props;
       const spread = progress * (220 + Math.max(window.innerWidth, window.innerHeight) * 0.42);
       const rotation = origin.x >= 0 ? 1 : -1;
       element.style.transform = `translate(${directionX * spread}px, ${directionY * spread}px) rotate(${rotation * progress * 14}deg) scale(${1 - progress * 0.16})`;
-      element.style.opacity = String(Math.max(0, 1 - progress * 1.25));
+      element.style.opacity = String(1 - progress);
     });
+  }
+
+  function animateHeroCollage() {
+    renderedProgress += (targetProgress - renderedProgress) * 0.14;
+    renderHeroCollage(renderedProgress);
+    if (Math.abs(targetProgress - renderedProgress) > 0.001) {
+      animationFrame = requestAnimationFrame(animateHeroCollage);
+    } else {
+      renderedProgress = targetProgress;
+      renderHeroCollage(renderedProgress);
+      animationFrame = 0;
+    }
+  }
+
+  function updateHeroCollage() {
+    if (!heroStage || !heroCanvas) return;
+    if (frameOrigins.length !== collageFrames.length) measureHeroFrames();
+    targetProgress = getHeroProgress();
+    if (!animationFrame) animationFrame = requestAnimationFrame(animateHeroCollage);
   }
 
   window.addEventListener('scroll', updateHeroCollage, { passive: true });
   window.addEventListener('resize', () => {
     measureHeroFrames();
+    targetProgress = getHeroProgress();
+    renderedProgress = targetProgress;
+    renderHeroCollage(renderedProgress);
     updateHeroCollage();
   });
   measureHeroFrames();
-  updateHeroCollage();
+  targetProgress = getHeroProgress();
+  renderedProgress = targetProgress;
+  renderHeroCollage(renderedProgress);
 
   const searchInput = document.getElementById('recipe-search') as HTMLInputElement;
   const categoryButtons = document.querySelectorAll('.category-btn');
