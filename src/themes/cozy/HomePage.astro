@@ -14,24 +14,33 @@ const { title, description, recipes, categories } = Astro.props;
 ---
 
 <div class="home-page">
-  <section class="hero container" aria-labelledby="journal-title">
-    <div class="hero-intro">
-      <p class="eyebrow">A personal coffee archive</p>
-      <h1 id="journal-title">{title}</h1>
-      <p class="hero-description">{description}</p>
-    </div>
-    <div class="hero-collage" aria-label="Coffee photography collage">
-      {recipes.slice(0, 5).map((recipe, index) => (
-        <a href={withBase(`/recipe/${recipe.id.replace(/\/index\.md$/, '')}`)} class={`collage-frame collage-frame-${index + 1}`} aria-label={`View ${recipe.data.title}`}>
-          <img src={withBase(recipe.data.image)} alt={recipe.data.title} loading={index === 0 ? 'eager' : 'lazy'} />
-        </a>
-      ))}
-      <span class="collage-note">A collection of<br />homemade coffee experiments.</span>
-    </div>
-    <div class="hero-footer">
-      <span>01 — 05 / First edition</span>
-      <a href="#archive" class="scroll-cue">Explore the archive <span>↓</span></a>
-      <span>{recipes.length} works collected</span>
+  <section class="hero-stage" aria-labelledby="journal-title">
+    <div class="hero-canvas">
+      <div class="hero-collage" aria-label="Coffee photography collage">
+        {recipes.slice(0, 11).map((recipe, index) => (
+          <a
+            href={withBase(`/recipe/${recipe.id.replace(/\/index\.md$/, '')}`)}
+            class={`collage-frame collage-frame-${index + 1}`}
+            data-move-x={index % 2 === 0 ? 1 : -1}
+            data-move-y={index % 3 === 0 ? -1 : 1}
+            data-rotate={index % 2 === 0 ? 1 : -1}
+            aria-label={`View ${recipe.data.title}`}
+          >
+            <img src={withBase(recipe.data.image)} alt={recipe.data.title} loading={index < 3 ? 'eager' : 'lazy'} />
+          </a>
+        ))}
+        <div class="hero-center">
+          <p class="eyebrow">A personal coffee archive</p>
+          <h1 id="journal-title">{title.replace(' Coffee Journal', '')}<br /><em>Coffee Journal</em></h1>
+          <p class="hero-description">{description}</p>
+        </div>
+        <span class="collage-note">Scroll to<br />open the journal ↓</span>
+      </div>
+      <div class="hero-footer container">
+        <span>01 — 11 / First edition</span>
+        <a href="#archive" class="scroll-cue">Explore the archive <span>↓</span></a>
+        <span>{recipes.length} works collected</span>
+      </div>
     </div>
   </section>
 
@@ -66,6 +75,33 @@ const { title, description, recipes, categories } = Astro.props;
 </div>
 
 <script>
+  const heroStage = document.querySelector('.hero-stage') as HTMLElement | null;
+  const heroCanvas = document.querySelector('.hero-canvas') as HTMLElement | null;
+  const collageFrames = document.querySelectorAll('.collage-frame');
+
+  function updateHeroCollage() {
+    if (!heroStage || !heroCanvas) return;
+    const travel = heroStage.getBoundingClientRect().top;
+    const distance = heroStage.clientHeight - window.innerHeight;
+    const progress = Math.max(0, Math.min(1, -travel / distance));
+
+    heroCanvas.style.setProperty('--hero-progress', String(progress));
+    collageFrames.forEach((frame) => {
+      const element = frame as HTMLElement;
+      const directionX = Number(element.dataset.moveX || 1);
+      const directionY = Number(element.dataset.moveY || 1);
+      const rotation = Number(element.dataset.rotate || 1);
+      const spread = progress * (180 + window.innerWidth * 0.18);
+      const verticalSpread = progress * (110 + window.innerHeight * 0.16);
+      element.style.transform = `translate(${directionX * spread}px, ${directionY * verticalSpread}px) rotate(${rotation * progress * 12}deg) scale(${1 - progress * 0.16})`;
+      element.style.opacity = String(Math.max(0, 1 - progress * 1.25));
+    });
+  }
+
+  window.addEventListener('scroll', updateHeroCollage, { passive: true });
+  window.addEventListener('resize', updateHeroCollage);
+  updateHeroCollage();
+
   const searchInput = document.getElementById('recipe-search') as HTMLInputElement;
   const categoryButtons = document.querySelectorAll('.category-btn');
   const recipeCards = document.querySelectorAll('.recipe-card');
