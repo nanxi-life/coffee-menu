@@ -19,13 +19,12 @@ const ingredientSummary = (recipe.data.ingredients ?? []).map((i) => i.item).joi
 >
   <div class="recipe-card-image-wrap">
     <img src={withBase(recipe.data.image)} alt={recipe.data.title} class="recipe-card-image" loading="lazy" />
+    <span class="recipe-card-index">{String(recipe.id.split('/').filter(Boolean).length).padStart(2, '0')}</span>
   </div>
   <div class="recipe-card-body">
-    <div class="recipe-card-top">
-      <span class="recipe-card-category">{recipe.data.category}</span>
-      <span class="recipe-card-arrow" aria-hidden="true">↗</span>
-    </div>
+    <span class="recipe-card-category">{recipe.data.category}</span>
     <h3 class="recipe-card-title">{recipe.data.title}</h3>
     {ingredientSummary && <p class="recipe-card-meta">{ingredientSummary}</p>}
+    <span class="recipe-card-arrow" aria-hidden="true">↗</span>
   </div>
 </a>

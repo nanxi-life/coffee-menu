@@ -8,7 +8,7 @@ interface Props {
   categories?: string[];
 }
 
-const { title, description, categories } = Astro.props;
+  const { title, description } = Astro.props;
 ---
 
 <!DOCTYPE html>
@@ -22,39 +22,18 @@ const { title, description, categories } = Astro.props;
     <title>{title}</title>
   </head>
   <body class="cozy">
-    <nav class="nav">
+    <nav class="nav" aria-label="主导航">
       <div class="container nav-inner">
-        <label class="search-field nav-search">
-          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
-            <circle cx="11" cy="11" r="6.5"></circle>
-            <path d="m16 16 4 4"></path>
-          </svg>
-          <span class="sr-only">搜索菜谱</span>
-          <input
-            type="text"
-            class="search-input"
-            placeholder="搜索咖啡、原料、做法..."
-            id="recipe-search"
-            aria-label="搜索咖啡、原料、做法"
-          />
-        </label>
-        {categories && categories.length > 0 && (
-          <div class="category-filter" id="category-filter" role="group" aria-label="菜谱分类">
-            <button class="category-btn active" data-category="all" aria-pressed="true">全部</button>
-            {categories.map((category) => (
-              <button class="category-btn" data-category={category} aria-pressed="false">{category}</button>
-            ))}
-          </div>
-        )}
+        <a href={withBase('/')} class="wordmark">NANXI <span>COFFEE JOURNAL</span></a>
+        <div class="nav-links">
+          <a href={withBase('/#archive')}>Archive</a>
+          <span class="nav-issue">No. 01 / 2026</span>
+        </div>
       </div>
     </nav>
     <main>
       <slot />
     </main>
-    <footer class="footer">
-      <div class="container">
-        <p>记录日常咖啡</p>
-      </div>
-    </footer>
+    <footer class="footer"><div class="container"><span>Nanxi Coffee Journal</span><span>Made slowly, one cup at a time.</span><span>© 2026</span></div></footer>
   </body>
 </html>

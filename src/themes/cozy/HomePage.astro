@@ -1,6 +1,8 @@
 ---
 import RecipeCard from './RecipeCard.astro';
 import type { Recipe } from '../../utils/recipes';
+import { withBase } from '../../utils/paths';
+import { HERO_IMAGES } from '../../generated/hero-images';
 
 interface Props {
   title: string;
@@ -9,27 +11,82 @@ interface Props {
   categories: string[];
 }
 
-const { title, description, recipes } = Astro.props;
+const { title, description, recipes, categories } = Astro.props;
+
+function shuffle<T>(items: T[]) {
+  const shuffled = [...items];
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
+  }
+  return shuffled;
+}
+
+const heroCandidates = HERO_IMAGES.map((asset) => ({
+  asset,
+  recipe: recipes.find((recipe) => recipe.data.image === asset.source),
+})).filter((candidate): candidate is typeof candidate & { recipe: Recipe } => Boolean(candidate.recipe));
+const portraitPool = shuffle(heroCandidates.filter(({ asset }) => asset.orientation === 'portrait'));
+const landscapePool = shuffle(heroCandidates.filter(({ asset }) => asset.orientation === 'landscape'));
+const heroSlots = ['portrait', 'landscape', 'landscape', 'portrait', 'landscape', 'portrait', 'portrait', 'landscape', 'portrait', 'landscape'] as const;
+const heroSelection = heroSlots.map((orientation, index) => {
+  const pool = orientation === 'portrait' ? portraitPool : landscapePool;
+  return pool[index % pool.length] ?? heroCandidates[index % heroCandidates.length];
+});
 ---
 
-<div class="container home-page">
-  <header class="header">
-    <div class="hero-copy">
-      <span class="eyebrow">A Small Coffee Archive</span>
-      <h1>{title}</h1>
-      <p>{description}</p>
+<div class="home-page">
+  <section class="hero-stage" aria-labelledby="journal-title">
+    <div class="hero-canvas">
+      <div class="hero-collage" aria-label="Coffee photography collage">
+        {heroSelection.map(({ asset, recipe }, index) => (
+          <a
+            href={withBase(`/recipe/${recipe.id.replace(/\/index\.md$/, '')}`)}
+            class={`collage-frame collage-frame-${index + 1} ${asset.orientation}`}
+            aria-label={`View ${recipe.data.title}`}
+          >
+            <img src={withBase(asset.thumb)} alt={recipe.data.title} loading={index < 3 ? 'eager' : 'lazy'} />
+          </a>
+        ))}
+        <div class="hero-center">
+          <p class="eyebrow">A personal coffee archive</p>
+          <h1 id="journal-title">{title.replace(' Coffee Journal', '')}<br /><em>Coffee Journal</em></h1>
+          <p class="hero-description">{description}</p>
+        </div>
+        <span class="collage-note">Scroll to<br />open the journal ↓</span>
+      </div>
+      <div class="hero-footer container">
+        <span>01 — 10 / First edition</span>
+        <a href="#archive" class="scroll-cue">Explore the archive <span>↓</span></a>
+        <span>{recipes.length} works collected</span>
+      </div>
     </div>
-    <div class="hero-stat" id="hero-stat" aria-label={`${recipes.length} recipes collected`} aria-live="polite">
-      <strong id="recipe-count">{recipes.length}</strong>
-      <span>RECIPES<br />COLLECTED</span>
-    </div>
-  </header>
+  </section>
 
-  <div class="recipe-grid" id="recipe-grid">
-    {recipes.map((recipe) => (
-      <RecipeCard recipe={recipe} />
-    ))}
-  </div>
+  <section class="archive container" id="archive" aria-labelledby="archive-title">
+    <div class="archive-heading">
+      <div>
+        <p class="eyebrow">The coffee archive</p>
+        <h2 id="archive-title">Small experiments,<br /><em>quietly recorded.</em></h2>
+      </div>
+      <p class="archive-intro">Recipes, ingredients and moments from a home coffee practice. Browse by feeling, flavour or method.</p>
+    </div>
+    <div class="archive-tools">
+      <label class="search-field">
+        <span class="search-mark">⌕</span>
+        <span class="sr-only">搜索菜谱</span>
+        <input type="text" class="search-input" placeholder="Search the journal" id="recipe-search" aria-label="搜索咖啡、原料、做法" />
+      </label>
+      <div class="category-filter" id="category-filter" role="group" aria-label="菜谱分类">
+        <button class="category-btn active" data-category="all" aria-pressed="true">All</button>
+        {categories.map((category) => <button class="category-btn" data-category={category} aria-pressed="false">{category}</button>)}
+      </div>
+      <span class="archive-count" id="hero-stat" aria-live="polite"><strong id="recipe-count">{recipes.length}</strong> entries</span>
+    </div>
+    <div class="recipe-grid" id="recipe-grid">
+      {recipes.map((recipe) => <RecipeCard recipe={recipe} />)}
+    </div>
+  </section>
 
   <div class="empty-state" id="empty-state" style="display: none;">
     没有找到匹配的菜谱，换个关键词试试？
@@ -37,6 +94,92 @@ const { title, description, recipes } = Astro.props;
 </div>
 
 <script>
+  const heroStage = document.querySelector('.hero-stage') as HTMLElement | null;
+  const heroCanvas = document.querySelector('.hero-canvas') as HTMLElement | null;
+  const heroCenter = document.querySelector('.hero-center') as HTMLElement | null;
+  const collageFrames = document.querySelectorAll('.collage-frame');
+  let frameOrigins: Array<{ x: number; y: number }> = [];
+  let targetProgress = 0;
+  let renderedProgress = 0;
+  let animationFrame = 0;
+
+  function measureHeroFrames() {
+    if (!heroCenter) return;
+    collageFrames.forEach((frame) => {
+      const element = frame as HTMLElement;
+      element.style.transform = '';
+      element.style.opacity = '';
+    });
+
+    const centerBounds = heroCenter.getBoundingClientRect();
+    const center = {
+      x: centerBounds.left + centerBounds.width / 2,
+      y: centerBounds.top + centerBounds.height / 2,
+    };
+    frameOrigins = Array.from(collageFrames).map((frame) => {
+      const bounds = frame.getBoundingClientRect();
+      return {
+        x: bounds.left + bounds.width / 2 - center.x,
+        y: bounds.top + bounds.height / 2 - center.y,
+      };
+    });
+  }
+
+  function getHeroProgress() {
+    if (!heroStage) return 0;
+    const travel = heroStage.getBoundingClientRect().top;
+    const distance = heroStage.clientHeight - window.innerHeight;
+    return Math.max(0, Math.min(1, -travel / Math.max(1, distance)));
+  }
+
+  function renderHeroCollage(progress: number) {
+    if (!heroCanvas) return;
+    heroCanvas.style.setProperty('--hero-progress', String(progress));
+    collageFrames.forEach((frame, index) => {
+      const element = frame as HTMLElement;
+      const origin = frameOrigins[index] || { x: 1, y: 1 };
+      const distanceFromCenter = Math.max(1, Math.hypot(origin.x, origin.y));
+      const directionX = origin.x / distanceFromCenter;
+      const directionY = origin.y / distanceFromCenter;
+      const spread = progress * (220 + Math.max(window.innerWidth, window.innerHeight) * 0.42);
+      const rotation = origin.x >= 0 ? 1 : -1;
+      element.style.transform = `translate(${directionX * spread}px, ${directionY * spread}px) rotate(${rotation * progress * 14}deg) scale(${1 - progress * 0.16})`;
+      element.style.opacity = String(1 - progress);
+    });
+  }
+
+  function animateHeroCollage() {
+    renderedProgress += (targetProgress - renderedProgress) * 0.14;
+    renderHeroCollage(renderedProgress);
+    if (Math.abs(targetProgress - renderedProgress) > 0.001) {
+      animationFrame = requestAnimationFrame(animateHeroCollage);
+    } else {
+      renderedProgress = targetProgress;
+      renderHeroCollage(renderedProgress);
+      animationFrame = 0;
+    }
+  }
+
+  function updateHeroCollage() {
+    if (!heroStage || !heroCanvas) return;
+    if (frameOrigins.length !== collageFrames.length) measureHeroFrames();
+    targetProgress = getHeroProgress();
+    if (!animationFrame) animationFrame = requestAnimationFrame(animateHeroCollage);
+  }
+
+  window.addEventListener('scroll', updateHeroCollage, { passive: true });
+  window.addEventListener('resize', () => {
+    measureHeroFrames();
+    targetProgress = getHeroProgress();
+    renderedProgress = targetProgress;
+    renderHeroCollage(renderedProgress);
+    updateHeroCollage();
+  });
+  measureHeroFrames();
+  targetProgress = getHeroProgress();
+  renderedProgress = targetProgress;
+  renderHeroCollage(renderedProgress);
+
   const searchInput = document.getElementById('recipe-search') as HTMLInputElement;
   const categoryButtons = document.querySelectorAll('.category-btn');
   const recipeCards = document.querySelectorAll('.recipe-card');

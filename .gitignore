@@ -4,6 +4,7 @@ dist/
 public/images/
 # generated types
 .astro/
+src/generated/
 
 # dependencies
 node_modules/

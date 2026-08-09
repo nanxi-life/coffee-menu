@@ -12,27 +12,26 @@ const { recipe, Content } = Astro.props;
 ---
 
 <div class="container recipe-detail">
-  <a href={withBase('/')} class="back-link">← 返回首页</a>
+  <div class="detail-topline"><a href={withBase('/#archive')} class="back-link" data-archive-back>← Back to archive</a><span>Field note / {recipe.data.category}</span></div>
+
+  <header class="recipe-detail-header">
+    <p class="eyebrow">Coffee experiment</p>
+    <h1 class="recipe-detail-title">{recipe.data.title}</h1>
+    <div class="recipe-detail-meta"><span>{recipe.data.category}</span>{recipe.data.prepTime && <span>制作时间 {recipe.data.prepTime}</span>}</div>
+  </header>
 
   <div class="recipe-detail-layout">
     <div class="recipe-detail-visual">
       <img src={withBase(recipe.data.image)} alt={recipe.data.title} class="recipe-detail-image" />
+      <p class="image-caption">A study in texture, temperature and time.<br />Nanxi Coffee Journal / {recipe.data.category}</p>
     </div>
 
     <div class="recipe-detail-content">
-      <div class="recipe-detail-header">
-        <span class="eyebrow">{recipe.data.category}</span>
-        <h1 class="recipe-detail-title">{recipe.data.title}</h1>
-        <div class="recipe-detail-meta">
-          {recipe.data.prepTime && <span>制作时间 {recipe.data.prepTime}</span>}
-        </div>
-      </div>
-
       {recipe.data.ingredients && recipe.data.ingredients.length > 0 && (
         <section class="recipe-detail-section">
           <div class="section-heading">
             <span class="section-index">01</span>
-            <h2>配比</h2>
+            <h2>配比 / Recipe</h2>
           </div>
           <ul class="ingredients-list">
             {recipe.data.ingredients.map((ing) => (
@@ -51,7 +50,7 @@ const { recipe, Content } = Astro.props;
     <section class="recipe-detail-section">
       <div class="section-heading">
         <span class="section-index">02</span>
-        <h2>介绍</h2>
+        <h2>Story</h2>
       </div>
       <div class="recipe-prose">
         <Content />
@@ -62,7 +61,7 @@ const { recipe, Content } = Astro.props;
       <section class="recipe-detail-section">
         <div class="section-heading">
           <span class="section-index">03</span>
-          <h2>制作步骤</h2>
+          <h2>Method</h2>
         </div>
         <ol class="steps-list">
           {recipe.data.steps.map((step) => (
@@ -73,3 +72,16 @@ const { recipe, Content } = Astro.props;
     )}
   </div>
 </div>
+
+<script>
+  const archiveBackLink = document.querySelector('[data-archive-back]');
+
+  archiveBackLink?.addEventListener('click', (event) => {
+    const cameFromThisSite = document.referrer.startsWith(window.location.origin);
+
+    if (cameFromThisSite && window.history.length > 1) {
+      event.preventDefault();
+      window.history.back();
+    }
+  });
+</script>
