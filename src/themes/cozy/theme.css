@@ -23,6 +23,7 @@
 .cozy {
 	min-height: 100vh;
 	margin: 0;
+	overflow-x: hidden;
 	background: var(--journal-ivory);
 	color: var(--journal-charcoal);
 	font-family: var(--journal-sans);
@@ -167,16 +168,15 @@
 	.cozy .nav-links { gap: 0; }
 	.cozy .hero-stage { height: 170vh; }
 	.cozy .hero-canvas { min-height: 520px; }
-	.cozy .hero-center { width: 70vw; padding: 18px 10px; background: var(--journal-ivory); }
+	.cozy .hero-center { width: 86vw; padding: 0; background: transparent; }
 	.cozy .hero-center h1 { font-size: clamp(3.2rem, 15vw, 5.2rem); }
-	.cozy .collage-frame-2, .cozy .collage-frame-3, .cozy .collage-frame:nth-child(n + 9) { display: none; }
-	.cozy .collage-frame-1 { top: 7%; left: 0; width: 25%; height: 21%; }
-	.cozy .collage-frame-4 { top: 7%; right: 0; width: 25%; height: 23%; }
-	.cozy .collage-frame-5 { top: 39%; left: 0; width: 24%; height: 26%; }
-	.cozy .collage-frame-6 { bottom: 5%; left: 13%; width: 24%; height: 19%; }
-	.cozy .collage-frame-7 { right: 40%; bottom: 4%; width: 21%; height: 17%; }
-	.cozy .collage-frame-8 { top: 40%; right: 0; width: 24%; height: 25%; }
-	.cozy .collage-note { right: 1%; bottom: 28%; font-size: 0.72rem; }
+	.cozy .collage-frame { display: none !important; }
+	.cozy .collage-frame-1, .cozy .collage-frame-4, .cozy .collage-frame-5, .cozy .collage-frame-8 { display: block !important; }
+	.cozy .collage-frame-1 { top: 11%; left: 4%; width: 29%; height: 18%; }
+	.cozy .collage-frame-4 { top: 11%; right: 4%; width: 29%; height: 20%; }
+	.cozy .collage-frame-5 { bottom: 14%; left: 4%; width: 29%; height: 21%; }
+	.cozy .collage-frame-8 { right: 4%; bottom: 14%; width: 29%; height: 20%; }
+	.cozy .collage-note { right: 5%; bottom: 7%; font-size: 0.72rem; }
 	.cozy .hero-footer { grid-template-columns: 1fr 1fr; gap: 14px; line-height: 1.5; }
 	.cozy .scroll-cue { grid-row: 2; justify-self: start; }
 	.cozy .hero-footer > :last-child { text-align: right; }
