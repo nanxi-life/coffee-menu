@@ -77,29 +77,59 @@ const { title, description, recipes, categories } = Astro.props;
 <script>
   const heroStage = document.querySelector('.hero-stage') as HTMLElement | null;
   const heroCanvas = document.querySelector('.hero-canvas') as HTMLElement | null;
+  const heroCenter = document.querySelector('.hero-center') as HTMLElement | null;
   const collageFrames = document.querySelectorAll('.collage-frame');
+  let frameOrigins: Array<{ x: number; y: number }> = [];
+
+  function measureHeroFrames() {
+    if (!heroCenter) return;
+    collageFrames.forEach((frame) => {
+      const element = frame as HTMLElement;
+      element.style.transform = '';
+      element.style.opacity = '';
+    });
+
+    const centerBounds = heroCenter.getBoundingClientRect();
+    const center = {
+      x: centerBounds.left + centerBounds.width / 2,
+      y: centerBounds.top + centerBounds.height / 2,
+    };
+    frameOrigins = Array.from(collageFrames).map((frame) => {
+      const bounds = frame.getBoundingClientRect();
+      return {
+        x: bounds.left + bounds.width / 2 - center.x,
+        y: bounds.top + bounds.height / 2 - center.y,
+      };
+    });
+  }
 
   function updateHeroCollage() {
     if (!heroStage || !heroCanvas) return;
     const travel = heroStage.getBoundingClientRect().top;
     const distance = heroStage.clientHeight - window.innerHeight;
     const progress = Math.max(0, Math.min(1, -travel / distance));
+    if (frameOrigins.length !== collageFrames.length) measureHeroFrames();
 
     heroCanvas.style.setProperty('--hero-progress', String(progress));
-    collageFrames.forEach((frame) => {
+    collageFrames.forEach((frame, index) => {
       const element = frame as HTMLElement;
-      const directionX = Number(element.dataset.moveX || 1);
-      const directionY = Number(element.dataset.moveY || 1);
-      const rotation = Number(element.dataset.rotate || 1);
-      const spread = progress * (180 + window.innerWidth * 0.18);
-      const verticalSpread = progress * (110 + window.innerHeight * 0.16);
-      element.style.transform = `translate(${directionX * spread}px, ${directionY * verticalSpread}px) rotate(${rotation * progress * 12}deg) scale(${1 - progress * 0.16})`;
+      const origin = frameOrigins[index] || { x: 1, y: 1 };
+      const distanceFromCenter = Math.max(1, Math.hypot(origin.x, origin.y));
+      const directionX = origin.x / distanceFromCenter;
+      const directionY = origin.y / distanceFromCenter;
+      const spread = progress * (220 + Math.max(window.innerWidth, window.innerHeight) * 0.42);
+      const rotation = origin.x >= 0 ? 1 : -1;
+      element.style.transform = `translate(${directionX * spread}px, ${directionY * spread}px) rotate(${rotation * progress * 14}deg) scale(${1 - progress * 0.16})`;
       element.style.opacity = String(Math.max(0, 1 - progress * 1.25));
     });
   }
 
   window.addEventListener('scroll', updateHeroCollage, { passive: true });
-  window.addEventListener('resize', updateHeroCollage);
+  window.addEventListener('resize', () => {
+    measureHeroFrames();
+    updateHeroCollage();
+  });
+  measureHeroFrames();
   updateHeroCollage();
 
   const searchInput = document.getElementById('recipe-search') as HTMLInputElement;
