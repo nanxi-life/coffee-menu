@@ -12,7 +12,7 @@ const { recipe, Content } = Astro.props;
 ---
 
 <div class="container recipe-detail">
-  <div class="detail-topline"><a href={withBase('/#archive')} class="back-link">← Back to archive</a><span>Field note / {recipe.data.category}</span></div>
+  <div class="detail-topline"><a href={withBase('/#archive')} class="back-link" data-archive-back>← Back to archive</a><span>Field note / {recipe.data.category}</span></div>
 
   <header class="recipe-detail-header">
     <p class="eyebrow">Coffee experiment</p>
@@ -72,3 +72,16 @@ const { recipe, Content } = Astro.props;
     )}
   </div>
 </div>
+
+<script>
+  const archiveBackLink = document.querySelector('[data-archive-back]');
+
+  archiveBackLink?.addEventListener('click', (event) => {
+    const cameFromThisSite = document.referrer.startsWith(window.location.origin);
+
+    if (cameFromThisSite && window.history.length > 1) {
+      event.preventDefault();
+      window.history.back();
+    }
+  });
+</script>
