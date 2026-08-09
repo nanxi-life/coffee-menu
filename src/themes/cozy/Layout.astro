@@ -6,9 +6,10 @@ interface Props {
   title: string;
   description?: string;
   categories?: string[];
+  isHome?: boolean;
 }
 
-  const { title, description } = Astro.props;
+const { title, description, isHome = false } = Astro.props;
 ---
 
 <!DOCTYPE html>
@@ -22,15 +23,17 @@ interface Props {
     <title>{title}</title>
   </head>
   <body class="cozy">
-    <nav class="nav" aria-label="主导航">
-      <div class="container nav-inner">
-        <a href={withBase('/')} class="wordmark">NANXI <span>COFFEE JOURNAL</span></a>
-        <div class="nav-links">
-          <a href={withBase('/#archive')}>Archive</a>
-          <span class="nav-issue">No. 01 / 2026</span>
+    {!isHome && (
+      <nav class="nav" aria-label="主导航">
+        <div class="container nav-inner">
+          <a href={withBase('/')} class="wordmark">NANXI <span>COFFEE JOURNAL</span></a>
+          <div class="nav-links">
+            <a href={withBase('/#archive')}>Archive</a>
+            <span class="nav-issue">No. 01 / 2026</span>
+          </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+    )}
     <main>
       <slot />
     </main>
