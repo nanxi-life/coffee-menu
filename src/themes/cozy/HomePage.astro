@@ -13,15 +13,6 @@ interface Props {
 
 const { title, description, recipes, categories } = Astro.props;
 
-function shuffle<T>(items: T[]) {
-  const shuffled = [...items];
-  for (let index = shuffled.length - 1; index > 0; index -= 1) {
-    const swapIndex = Math.floor(Math.random() * (index + 1));
-    [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
-  }
-  return shuffled;
-}
-
 const heroCandidates = HERO_IMAGES.map((asset) => ({
   asset,
   recipe: recipes.find((recipe) => recipe.data.image === asset.source),
@@ -33,39 +24,58 @@ const heroAssets = heroCandidates.map(({ asset, recipe }) => ({
   thumb: withBase(asset.thumb),
   orientation: asset.orientation,
 }));
-const portraitPool = shuffle(heroCandidates.filter(({ asset }) => asset.orientation === 'portrait'));
-const landscapePool = shuffle(heroCandidates.filter(({ asset }) => asset.orientation === 'landscape'));
-const heroSlots = ['portrait', 'landscape', 'landscape', 'portrait', 'landscape', 'portrait', 'portrait', 'landscape', 'portrait', 'landscape'] as const;
-const heroSelection = heroSlots.map((orientation, index) => {
-  const pool = orientation === 'portrait' ? portraitPool : landscapePool;
-  return pool[index % pool.length] ?? heroCandidates[index % heroCandidates.length];
-});
+
+// 胶片墙:完全随机洗牌后按奇偶分成两列,不做横竖分组
+function shuffle<T>(items: T[]) {
+  const shuffled = [...items];
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
+  }
+  return shuffled;
+}
+const shuffledAssets = shuffle(heroAssets);
+const filmColumns = [
+  shuffledAssets.filter((_, index) => index % 2 === 0),
+  shuffledAssets.filter((_, index) => index % 2 === 1),
+];
+const filmDurations = [28, 38];
 ---
 
 <div class="home-page">
   <section class="hero-stage" aria-labelledby="journal-title">
     <div class="hero-canvas">
-      <div class="hero-collage" aria-label="Coffee photography collage">
-        {heroSelection.map(({ asset, recipe }, index) => (
-          <a
-            href={withBase(`/recipe/${recipe.id.replace(/\/index\.md$/, '')}`)}
-            class={`collage-frame collage-frame-${index + 1} ${asset.orientation}`}
-            aria-label={`View ${recipe.data.title}`}
-          >
-            <img src={withBase(asset.thumb)} alt={recipe.data.title} loading={index < 3 ? 'eager' : 'lazy'} />
-          </a>
+      <div class="hero-films">
+        {filmColumns.map((column, columnIndex) => (
+          <div class={`film-column${columnIndex % 2 === 1 ? ' film-column--reverse' : ''}`}>
+            <div class="film-track" style={`animation-duration: ${filmDurations[columnIndex % filmDurations.length]}s`}>
+              {[false, true].map((isDuplicate) => (
+                <div class="film-half" aria-hidden={isDuplicate ? 'true' : undefined}>
+                  {column.map((asset) => (
+                    <a
+                      href={asset.href}
+                      tabindex={-1}
+                      class={`film-item ${asset.orientation}`}
+                      aria-label={isDuplicate ? undefined : `View ${asset.title}`}
+                    >
+                      <img src={asset.thumb} alt={isDuplicate ? '' : asset.title} loading="eager" decoding="async" />
+                    </a>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
         ))}
-        <div class="hero-center">
-          <p class="eyebrow">A personal coffee archive</p>
-          <h1 id="journal-title">{title.replace(' Coffee Journal', '')}<br /><em>Coffee Journal</em></h1>
-          <p class="hero-description">{description}</p>
-        </div>
-        <span class="collage-note">Scroll to<br />open the journal ↓</span>
       </div>
-      <div class="hero-footer container">
-        <span>01 — 10 / First edition</span>
-        <a href="#archive" class="scroll-cue">Explore the archive <span>↓</span></a>
-        <span>{recipes.length} works collected</span>
+
+      <div class="hero-center">
+        <p class="eyebrow">A personal coffee archive</p>
+        <h1 id="journal-title">{title.replace(' Coffee Journal', '')}<br /><em>Coffee Journal</em></h1>
+        <p class="hero-description">{description}</p>
+        <div class="hero-actions">
+          <a href="#archive" class="scroll-cue">Explore the archive <span>↓</span></a>
+          <span class="hero-count">{recipes.length} works collected</span>
+        </div>
       </div>
     </div>
   </section>
@@ -79,39 +89,6 @@ const heroSelection = heroSlots.map((orientation, index) => {
       </div>
     </div>
   </nav>
-
-  <script is:inline define:vars={{ heroAssets }}>
-    const heroSlots = ['portrait', 'landscape', 'landscape', 'portrait', 'landscape', 'portrait', 'portrait', 'landscape', 'portrait', 'landscape'];
-    const shuffled = (items) => {
-      const result = [...items];
-      for (let index = result.length - 1; index > 0; index -= 1) {
-        const swapIndex = Math.floor(Math.random() * (index + 1));
-        [result[index], result[swapIndex]] = [result[swapIndex], result[index]];
-      }
-      return result;
-    };
-
-    const pools = {
-      portrait: shuffled(heroAssets.filter((asset) => asset.orientation === 'portrait')),
-      landscape: shuffled(heroAssets.filter((asset) => asset.orientation === 'landscape')),
-    };
-
-    document.querySelectorAll('.collage-frame').forEach((frame, index) => {
-      const orientation = heroSlots[index];
-      const pool = pools[orientation];
-      const asset = pool[index % pool.length] || heroAssets[index % heroAssets.length];
-      if (!asset) return;
-
-      const link = frame;
-      const image = frame.querySelector('img');
-      link.href = asset.href;
-      link.setAttribute('aria-label', `View ${asset.title}`);
-      if (image) {
-        image.src = asset.thumb;
-        image.alt = asset.title;
-      }
-    });
-  </script>
 
   <section class="archive container" id="archive" aria-labelledby="archive-title">
     <div class="archive-heading">
@@ -144,91 +121,34 @@ const heroSelection = heroSlots.map((orientation, index) => {
 </div>
 
 <script>
-  const heroStage = document.querySelector('.hero-stage') as HTMLElement | null;
-  const heroCanvas = document.querySelector('.hero-canvas') as HTMLElement | null;
-  const heroCenter = document.querySelector('.hero-center') as HTMLElement | null;
-  const collageFrames = document.querySelectorAll('.collage-frame');
-  let frameOrigins: Array<{ x: number; y: number }> = [];
-  let targetProgress = 0;
-  let renderedProgress = 0;
-  let animationFrame = 0;
-
-  function measureHeroFrames() {
-    if (!heroCenter) return;
-    collageFrames.forEach((frame) => {
-      const element = frame as HTMLElement;
-      element.style.transform = '';
-      element.style.opacity = '';
+  // 仅站内锚点平滑滚动:避免影响浏览器返回时的滚动位置恢复
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.querySelectorAll('a[href="#archive"]').forEach((link) => {
+    link.addEventListener('click', (event) => {
+      event.preventDefault();
+      document.getElementById('archive')?.scrollIntoView({
+        behavior: prefersReducedMotion ? 'auto' : 'smooth',
+        block: 'start',
+      });
     });
-
-    const centerBounds = heroCenter.getBoundingClientRect();
-    const center = {
-      x: centerBounds.left + centerBounds.width / 2,
-      y: centerBounds.top + centerBounds.height / 2,
-    };
-    frameOrigins = Array.from(collageFrames).map((frame) => {
-      const bounds = frame.getBoundingClientRect();
-      return {
-        x: bounds.left + bounds.width / 2 - center.x,
-        y: bounds.top + bounds.height / 2 - center.y,
-      };
-    });
-  }
-
-  function getHeroProgress() {
-    if (!heroStage) return 0;
-    const travel = heroStage.getBoundingClientRect().top;
-    const distance = heroStage.clientHeight - window.innerHeight;
-    return Math.max(0, Math.min(1, -travel / Math.max(1, distance)));
-  }
-
-  function renderHeroCollage(progress: number) {
-    if (!heroCanvas) return;
-    heroCanvas.style.setProperty('--hero-progress', String(progress));
-    collageFrames.forEach((frame, index) => {
-      const element = frame as HTMLElement;
-      const origin = frameOrigins[index] || { x: 1, y: 1 };
-      const distanceFromCenter = Math.max(1, Math.hypot(origin.x, origin.y));
-      const directionX = origin.x / distanceFromCenter;
-      const directionY = origin.y / distanceFromCenter;
-      const spread = progress * (220 + Math.max(window.innerWidth, window.innerHeight) * 0.42);
-      const rotation = origin.x >= 0 ? 1 : -1;
-      element.style.transform = `translate(${directionX * spread}px, ${directionY * spread}px) rotate(${rotation * progress * 14}deg) scale(${1 - progress * 0.16})`;
-      element.style.opacity = String(1 - progress);
-    });
-  }
-
-  function animateHeroCollage() {
-    renderedProgress += (targetProgress - renderedProgress) * 0.14;
-    renderHeroCollage(renderedProgress);
-    if (Math.abs(targetProgress - renderedProgress) > 0.001) {
-      animationFrame = requestAnimationFrame(animateHeroCollage);
-    } else {
-      renderedProgress = targetProgress;
-      renderHeroCollage(renderedProgress);
-      animationFrame = 0;
-    }
-  }
-
-  function updateHeroCollage() {
-    if (!heroStage || !heroCanvas) return;
-    if (frameOrigins.length !== collageFrames.length) measureHeroFrames();
-    targetProgress = getHeroProgress();
-    if (!animationFrame) animationFrame = requestAnimationFrame(animateHeroCollage);
-  }
-
-  window.addEventListener('scroll', updateHeroCollage, { passive: true });
-  window.addEventListener('resize', () => {
-    measureHeroFrames();
-    targetProgress = getHeroProgress();
-    renderedProgress = targetProgress;
-    renderHeroCollage(renderedProgress);
-    updateHeroCollage();
   });
-  measureHeroFrames();
-  targetProgress = getHeroProgress();
-  renderedProgress = targetProgress;
-  renderHeroCollage(renderedProgress);
+
+  // 刷新时回到顶部:清除锚点、取消焦点恢复(否则浏览器会把焦点恢复到轮播图链接并滚过去)
+  const resetOnReload = () => {
+    const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+    if (nav?.type !== 'reload') return;
+    if (location.hash) history.replaceState(null, '', location.pathname + location.search);
+    if (document.activeElement && document.activeElement !== document.body) {
+      (document.activeElement as HTMLElement).blur();
+    }
+    window.scrollTo(0, 0);
+  };
+  window.addEventListener('load', resetOnReload);
+  window.addEventListener('pageshow', () => {
+    resetOnReload();
+    window.setTimeout(resetOnReload, 0);
+    window.setTimeout(resetOnReload, 250);
+  });
 
   const searchInput = document.getElementById('recipe-search') as HTMLInputElement;
   const categoryButtons = document.querySelectorAll('.category-btn');
