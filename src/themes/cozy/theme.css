@@ -69,7 +69,6 @@ html { scroll-padding-top: 84px; }
 .cozy .film-item:hover img { transform: scale(1.05); }
 @keyframes film-scroll-up { from { transform: translateY(0); } to { transform: translateY(calc(-50% - 7px)); } }
 @keyframes film-scroll-down { from { transform: translateY(calc(-50% - 7px)); } to { transform: translateY(0); } }
-@keyframes film-scroll-x { from { transform: translateX(0); } to { transform: translateX(calc(-50% - 7px)); } }
 .cozy .hero-center { position: relative; z-index: 20; display: flex; flex-direction: column; justify-content: center; padding: 56px clamp(28px, 4.5vw, 72px); color: var(--journal-brown-dark); text-align: left; }
 .cozy .hero-center h1 { margin: 18px 0 22px; font-family: var(--journal-serif); font-size: clamp(3.4rem, 6.4vw, 6.8rem); font-weight: 400; letter-spacing: -0.09em; line-height: 0.82; }
 .cozy .hero-center h1 em { color: var(--journal-brown); font-size: 0.62em; font-style: normal; letter-spacing: -0.07em; }
@@ -151,13 +150,14 @@ html { scroll-padding-top: 84px; }
 	.cozy .hero-center { order: 1; padding: 64px 22px 44px; }
 	.cozy .hero-center h1 { font-size: clamp(3.2rem, 12vw, 5.6rem); }
 	.cozy .hero-films { order: 2; height: auto; min-height: 0; -webkit-mask-image: linear-gradient(to right, transparent 0, #000 6%, #000 94%, transparent 100%); mask-image: linear-gradient(to right, transparent 0, #000 6%, #000 94%, transparent 100%); }
-	.cozy .film-column { position: static; width: 100%; height: auto; overflow: hidden; transform: none; box-shadow: none; }
+	.cozy .film-column { position: static; width: 100%; height: auto; overflow: hidden; transform: none; box-shadow: none; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
 	.cozy .film-column + .film-column { display: none; }
-	.cozy .film-track { flex-direction: row; width: max-content; animation: film-scroll-x 28s linear infinite; }
+	.cozy .film-track { flex-direction: row; width: max-content; animation: none; }
 	.cozy .film-half { flex-direction: row; }
 	.cozy .film-item { height: 200px; }
 	.cozy .film-item.portrait { width: 150px; }
 	.cozy .film-item.landscape { width: 267px; }
+	.cozy .film-item img { -webkit-user-drag: none; }
 	.cozy .archive-heading, .cozy .recipe-detail-lower { grid-template-columns: 1fr; }
 	.cozy .archive-intro { margin-top: 8px; }
 	.cozy .archive-tools { flex-wrap: wrap; }

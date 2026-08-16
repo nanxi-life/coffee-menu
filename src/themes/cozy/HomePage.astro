@@ -150,6 +150,131 @@ const filmDurations = [28, 38];
     window.setTimeout(resetOnReload, 250);
   });
 
+  // 移动端:横向胶片自动播放 + 手指拖拽(带惯性、无缝循环),松手后恢复自动播放
+  const filmMedia = window.matchMedia('(max-width: 820px)');
+  const filmColumn = document.querySelector('.film-column') as HTMLElement | null;
+  const filmTrack = filmColumn?.querySelector('.film-track') as HTMLElement | null;
+  let filmDragCleanup: (() => void) | null = null;
+
+  function enableFilmDrag() {
+    if (filmDragCleanup || !filmColumn || !filmTrack) return;
+    let offset = 0;
+    let velocity = 0;
+    let lastX = 0;
+    let lastTime = 0;
+    let dragging = false;
+    let moved = 0;
+    let autoFrame = 0;
+    let inertiaFrame = 0;
+    let resumeTimer = 0;
+    let lastAutoTime = performance.now();
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const loopWidth = () => (filmTrack.scrollWidth + 14) / 2;
+    const applyOffset = () => {
+      const loop = loopWidth();
+      offset = ((offset % loop) + loop) % loop - loop;
+      filmTrack.style.transform = `translate3d(${offset}px, 0, 0)`;
+    };
+
+    const stopAuto = () => {
+      cancelAnimationFrame(autoFrame);
+      window.clearTimeout(resumeTimer);
+    };
+    const startAuto = () => {
+      stopAuto();
+      cancelAnimationFrame(inertiaFrame);
+      lastAutoTime = performance.now();
+      let rampFrames = 0;
+      const step = (now: number) => {
+        const dt = Math.min(50, now - lastAutoTime);
+        lastAutoTime = now;
+        rampFrames += 1;
+        const ramp = 1 - Math.pow(0.94, rampFrames);
+        offset -= (loopWidth() / 28) * (dt / 1000) * ramp;
+        applyOffset();
+        autoFrame = requestAnimationFrame(step);
+      };
+      autoFrame = requestAnimationFrame(step);
+    };
+    const scheduleAutoResume = () => {
+      window.clearTimeout(resumeTimer);
+      resumeTimer = window.setTimeout(startAuto, 600);
+    };
+
+    const onPointerDown = (event: PointerEvent) => {
+      dragging = true;
+      moved = 0;
+      velocity = 0;
+      lastX = event.clientX;
+      lastTime = performance.now();
+      stopAuto();
+      cancelAnimationFrame(inertiaFrame);
+      filmColumn.setPointerCapture(event.pointerId);
+    };
+    const onPointerMove = (event: PointerEvent) => {
+      if (!dragging) return;
+      const now = performance.now();
+      const delta = event.clientX - lastX;
+      velocity = delta / Math.max(1, now - lastTime);
+      lastX = event.clientX;
+      lastTime = now;
+      offset += delta;
+      moved += Math.abs(delta);
+      applyOffset();
+    };
+    const onPointerEnd = () => {
+      if (!dragging) return;
+      dragging = false;
+      if (Math.abs(velocity) > 0.05) {
+        const step = () => {
+          velocity *= 0.94;
+          offset += velocity * 16;
+          applyOffset();
+          if (Math.abs(velocity) > 0.02) inertiaFrame = requestAnimationFrame(step);
+          else scheduleAutoResume();
+        };
+        inertiaFrame = requestAnimationFrame(step);
+      } else {
+        scheduleAutoResume();
+      }
+    };
+    const onClick = (event: MouseEvent) => {
+      if (moved > 6) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    };
+
+    filmColumn.addEventListener('pointerdown', onPointerDown);
+    filmColumn.addEventListener('pointermove', onPointerMove);
+    filmColumn.addEventListener('pointerup', onPointerEnd);
+    filmColumn.addEventListener('pointercancel', onPointerEnd);
+    filmColumn.addEventListener('click', onClick, true);
+
+    if (!reduceMotion) startAuto();
+
+    filmDragCleanup = () => {
+      stopAuto();
+      cancelAnimationFrame(inertiaFrame);
+      filmColumn.removeEventListener('pointerdown', onPointerDown);
+      filmColumn.removeEventListener('pointermove', onPointerMove);
+      filmColumn.removeEventListener('pointerup', onPointerEnd);
+      filmColumn.removeEventListener('pointercancel', onPointerEnd);
+      filmColumn.removeEventListener('click', onClick, true);
+      filmTrack.style.transform = '';
+    };
+  }
+
+  if (filmMedia.matches) enableFilmDrag();
+  filmMedia.addEventListener('change', () => {
+    if (filmMedia.matches) enableFilmDrag();
+    else {
+      filmDragCleanup?.();
+      filmDragCleanup = null;
+    }
+  });
+
   const searchInput = document.getElementById('recipe-search') as HTMLInputElement;
   const categoryButtons = document.querySelectorAll('.category-btn');
   const recipeCards = document.querySelectorAll('.recipe-card');
